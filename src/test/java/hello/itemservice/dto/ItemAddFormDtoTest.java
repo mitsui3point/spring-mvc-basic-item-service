@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @refLink https://velog.io/@_koiil/SpringBoot-Spring-Validation%EC%9D%84-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EC%9C%A0%ED%9A%A8%EC%84%B1-%EA%B2%80%EC%A6%9D
  */
 @SpringBootTest
-public class ItemAddRequestDtoTest {
+public class ItemAddFormDtoTest {
     private static ValidatorFactory factory;
     private static Validator validator;
 
@@ -37,10 +37,10 @@ public class ItemAddRequestDtoTest {
     @Test
     void invalidNameTest() {
         //given
-        ItemAddRequestDto itemAddDto = ItemAddRequestDto.builder().itemName("").price(10000).quantity(10).build();
+        ItemAddFormDto itemAddDto = ItemAddFormDto.builder().itemName("").price(10000).quantity(10).build();
 
         //when
-        Set<ConstraintViolation<ItemAddRequestDto>> validate = validator.validate(itemAddDto);
+        Set<ConstraintViolation<ItemAddFormDto>> validate = validator.validate(itemAddDto);
 
         //then
         assertThat(validate.size()).isEqualTo(1);

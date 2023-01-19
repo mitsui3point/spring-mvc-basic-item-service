@@ -1,6 +1,7 @@
 package hello.itemservice.web;
 
 import hello.itemservice.domain.Item;
+import hello.itemservice.dto.ItemAddFormDto;
 import hello.itemservice.repository.ItemRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import java.util.Arrays;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -64,7 +66,7 @@ public class BasicItemControllerTest {
 
         //when
         when(itemRepository.findById(item2.getId()))
-                .thenReturn(item2);//Mockito MockBean (ItemRepository 는 현재 BasicItemController 주입목적인 MockBean 이므로 로직이 동작하지 않기 때문에 결과를 직접 입력)
+                .thenReturn(item2);
         ResultActions perform = mvc.perform(get("/basic/items/%d".formatted(item2.getId()))
                 .accept(MediaType.ALL)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -75,5 +77,69 @@ public class BasicItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("basic/item"))
                 .andExpect(model().attribute("item", itemRepository.findById(item2.getId())));
+    }
+
+    @Test
+    void addFormTest() throws Exception {
+        //when
+        ResultActions perform = mvc.perform(get("/basic/items/add")
+                .accept(MediaType.ALL)
+                .characterEncoding(StandardCharsets.UTF_8)
+        );
+
+        //then
+        perform.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(view().name("basic/addForm"))
+                .andExpect(model().attributeExists("itemAddFormDto"));
+    }
+
+    @Test
+    void addTest() throws Exception {
+        //given
+        ItemAddFormDto itemDto = ItemAddFormDto.builder().itemName("item1").price(10000).quantity(10).build();
+        Item saveItem = itemDto.toItem();
+        Item savedItem = itemDto.toItem();
+        savedItem.setId(1L);
+
+        //when
+        when(itemRepository.save(saveItem))
+                .thenReturn(savedItem);
+        ResultActions perform = mvc.perform(post("/basic/items/add")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .param("itemName", itemDto.getItemName())
+                .param("price", itemDto.getPrice().toString())
+                .param("quantity", itemDto.getQuantity().toString())
+        );
+
+        //then
+        perform.andDo(print())
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/basic/items/"+savedItem.getId()));
+    }
+
+    @Test
+    void addFailTest() throws Exception {
+        //given
+        ItemAddFormDto itemDto = ItemAddFormDto.builder().itemName("").price(10000).quantity(10).build();
+        Item saveItem = itemDto.toItem();
+        Item savedItem = itemDto.toItem();
+        savedItem.setId(1L);
+
+        //when
+        when(itemRepository.save(saveItem))
+                .thenReturn(savedItem);
+        ResultActions perform = mvc.perform(post("/basic/items/add")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaType.TEXT_HTML)
+                .characterEncoding(StandardCharsets.UTF_8)
+        );
+
+        //then
+        perform.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(view().name("basic/addForm"))
+        ;
     }
 }
