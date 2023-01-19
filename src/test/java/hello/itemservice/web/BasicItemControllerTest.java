@@ -16,8 +16,7 @@ import java.util.Arrays;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BasicItemController.class)
 public class BasicItemControllerTest {
@@ -34,7 +33,7 @@ public class BasicItemControllerTest {
     private ItemRepository itemRepository;
 
     @Test
-    void itemViewTest() throws Exception {
+    void itemsTest() throws Exception {
         //given
         Item item1 = Item.builder().itemName("item1").price(10000).quantity(10).build();
         Item item2 = Item.builder().itemName("item2").price(20000).quantity(20).build();
@@ -42,7 +41,8 @@ public class BasicItemControllerTest {
         item2.setId(2L);
 
         //when
-        when(itemRepository.findAll()).thenReturn(Arrays.asList(item1, item2));//Mockito MockBean (ItemRepository 는 현재 BasicItemController 주입목적인 MockBean 이므로 로직이 동작하지 않기 때문에 결과를 직접 입력)
+        when(itemRepository.findAll())
+                .thenReturn(Arrays.asList(item1, item2));//Mockito MockBean (ItemRepository 는 현재 BasicItemController 주입목적인 MockBean 이므로 로직이 동작하지 않기 때문에 결과를 직접 입력)
         ResultActions perform = mvc.perform(get("/basic/items")
                 .accept(MediaType.ALL)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -52,5 +52,28 @@ public class BasicItemControllerTest {
         perform.andDo(print())
                 .andExpect(view().name("basic/items"))
                 .andExpect(model().attribute("items", itemRepository.findAll()));
+    }
+
+    @Test
+    void itemTest() throws Exception {
+        //given
+        Item item1 = Item.builder().itemName("item1").price(10000).quantity(10).build();
+        Item item2 = Item.builder().itemName("item2").price(20000).quantity(20).build();
+        item1.setId(1L);
+        item2.setId(2L);
+
+        //when
+        when(itemRepository.findById(item2.getId()))
+                .thenReturn(item2);//Mockito MockBean (ItemRepository 는 현재 BasicItemController 주입목적인 MockBean 이므로 로직이 동작하지 않기 때문에 결과를 직접 입력)
+        ResultActions perform = mvc.perform(get("/basic/items/%d".formatted(item2.getId()))
+                .accept(MediaType.ALL)
+                .characterEncoding(StandardCharsets.UTF_8)
+        );
+
+        //then
+        perform.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(view().name("basic/item"))
+                .andExpect(model().attribute("item", itemRepository.findById(item2.getId())));
     }
 }
