@@ -62,6 +62,35 @@ public class BasicItemController {
         return "redirect:/basic/items/" + resultBody.getId();
     }
 
+    /**
+     * 상품 등록을 완료하고 웹 브라우저의 새로고침 버튼을 클릭해보자.
+     * <br> 상품이 계속해서 중복 등록되는 것을 확인할 수 있다.
+     * <br> 웹 브라우저의 새로 고침은 마지막에 서버에 전송한 데이터를 다시 전송한다.
+     * <br> 상품 등록 폼에서 데이터를 입력하고 저장을 선택하면 POST /add + 상품 데이터를 서버로 전송한다.
+     * <br> 이 상태에서 새로 고침을 또 선택하면 마지막에 전송한 POST /add + 상품 데이터를 서버로 다시 전송하게 된다.
+     * <br> 그래서 내용은 같고, ID만 다른 상품 데이터가 계속 쌓이게 된다.
+     * <p>
+     * 이 문제를 어떻게 해결할 수 있을까?
+     * <br> POST, Redirect GET
+     * <br> 웹 브라우저의 새로 고침은 마지막에 서버에 전송한 데이터를 다시 전송한다.
+     * <br> 새로 고침 문제를 해결하려면 상품 저장 후에 뷰 템플릿으로 이동하는 것이 아니라,
+     * <br> 상품 상세 화면으로 리다이렉트를 호출해주면 된다.
+     * <br> 웹 브라우저는 리다이렉트의 영향으로 상품 저장 후에 실제 상품 상세 화면으로 다시 이동한다.
+     * <br> 따라서 마지막에 호출한 내용이 상품 상세 화면인 GET /items/{id} 가 되는 것이다.
+     * <br> 이후 새로고침을 해도 상품 상세 화면으로 이동하게 되므로 새로 고침 문제를 해결할 수 있다.
+     */
+//    @PostMapping(value = "/add")
+    public String saveWrongExample(@Valid ItemAddFormDto itemAddFormDto,
+                                   BindingResult bindingResult,
+                                   Model model) {
+        if (bindingResult.hasErrors()) {
+            return "basic/addForm";
+        }
+        Item saveParam = itemAddFormDto.toItem();
+        model.addAttribute("item", itemRepository.save(saveParam));
+        return "basic/item";
+    }
+
     @GetMapping("/{itemId}/edit")
     public String editForm(@PathVariable Long itemId, Model model) {
         Item item = itemRepository.findById(itemId);
