@@ -16,6 +16,13 @@
     <div class="py-5 text-center">
         <h2>상품 상세</h2>
     </div>
+
+    <!-- 추가
+    ${param.status} : 타임리프에서 쿼리 파라미터를 편리하게 조회하는 기능
+    원래는 컨트롤러에서 모델에 직접 담고 값을 꺼내야 한다.
+    그런데 쿼리 파라미터는 자주 사용해서 타임리프에서 직접 지원한다.
+    -->
+    <h2 th:if="${param.status}" th:text="'등록 성공'"></h2>
     <div>
         <label for="itemId">상품 ID</label>
         <input type="text" id="itemId" name="itemId" class="form-control"

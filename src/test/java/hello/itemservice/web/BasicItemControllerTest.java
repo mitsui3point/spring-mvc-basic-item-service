@@ -117,7 +117,7 @@ public class BasicItemControllerTest {
         //then
         perform.andDo(print())
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/basic/items/" + savedItem.getId()));
+                .andExpect(redirectedUrl("/basic/items/" + savedItem.getId() + "?status=true"));
     }
 
     @Test

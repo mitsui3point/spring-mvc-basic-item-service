@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
 @Controller
@@ -49,7 +50,7 @@ public class BasicItemController {
      * @ModelAttribute - 이름 생략
      * <br>: {@link ModelAttribute}의 이름을 생략할 수 있다.
      */
-    @PostMapping(value = "/add")
+//    @PostMapping(value = "/add")
     public String savePRG(/*@ModelAttribute("itemAddFormDto") */
             @Valid ItemAddFormDto itemAddFormDto,//attribute name ItemAddFormDto -> itemAddFormDto
             BindingResult bindingResult) {
@@ -89,6 +90,31 @@ public class BasicItemController {
         Item saveParam = itemAddFormDto.toItem();
         model.addAttribute("item", itemRepository.save(saveParam));
         return "basic/item";
+    }
+
+    /**
+     * @RedirectAttributes {@link RedirectAttributes}
+     * <br> RedirectAttributes 를 사용하면 URL 인코딩도 해주고, pathVarible, 쿼리 파라미터까지 처리해준다.
+     * <br> redirect:/basic/items/{itemId}
+     * <br> pathVariable 바인딩: {itemId}
+     * <br> 나머지는 쿼리 파라미터로 처리: ?status=true
+     */
+    @PostMapping(value = "/add")
+    public String saveRedirectAttribute(@ModelAttribute @Valid ItemAddFormDto itemAddFormDto,
+                                        BindingResult bindingResult,//BindingResult bindingRsult 파라미터의 위치는 @ModelAttribute Item item 다음에 와야한다.
+                                        RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            return "basic/addForm";
+        }
+
+        Item saveParam = itemAddFormDto.toItem();
+
+        Item resultBody = itemRepository.save(saveParam);
+
+        redirectAttributes.addAttribute("itemId", resultBody.getId());
+        redirectAttributes.addAttribute("status", true);
+
+        return "redirect:/basic/items/{itemId}";
     }
 
     @GetMapping("/{itemId}/edit")
