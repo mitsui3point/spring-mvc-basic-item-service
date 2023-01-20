@@ -2,6 +2,7 @@ package hello.itemservice.web;
 
 import hello.itemservice.domain.Item;
 import hello.itemservice.dto.ItemAddFormDto;
+import hello.itemservice.dto.ItemEditFormDto;
 import hello.itemservice.repository.ItemRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
@@ -49,7 +50,7 @@ public class BasicItemController {
      * <br>: {@link ModelAttribute}의 이름을 생략할 수 있다.
      */
     @PostMapping(value = "/add")
-    public String save(/*@ModelAttribute("itemAddFormDto") */
+    public String savePRG(/*@ModelAttribute("itemAddFormDto") */
             @Valid ItemAddFormDto itemAddFormDto,//attribute name ItemAddFormDto -> itemAddFormDto
             BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -59,6 +60,42 @@ public class BasicItemController {
         Item saveParam = itemAddFormDto.toItem();
         Item resultBody = itemRepository.save(saveParam);
         return "redirect:/basic/items/" + resultBody.getId();
+    }
+
+    @GetMapping("/{itemId}/edit")
+    public String editForm(@PathVariable Long itemId, Model model) {
+        Item item = itemRepository.findById(itemId);
+
+        if (item == null) {
+            return "basic/notFound";
+        }
+
+        ItemEditFormDto itemEditFormDto = ItemEditFormDto.builder()
+                .id(item.getId())
+                .itemName(item.getItemName())
+                .price(item.getPrice())
+                .quantity(item.getQuantity())
+                .build();
+        model.addAttribute("itemEditFormDto", itemEditFormDto);
+        return "basic/editForm";
+    }
+
+    /**
+     * @참고 <br> HTML Form 전송은 PUT, PATCH를 지원하지 않는다. GET, POST만 사용할 수 있다.
+     * <br> PUT, PATCH는 HTTP API 전송시에 사용
+     * <br> 스프링에서 HTTP POST로 Form 요청할 때 히든 필드를 통해서 PUT, PATCH 매핑을 사용하는 방법이 있지만, HTTP 요청상 POST 요청이다
+     */
+    @PostMapping("/{itemId}/edit")
+    public String edit(@PathVariable Long itemId,
+                       @Valid @ModelAttribute ItemEditFormDto itemEditFormDto,
+                       BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return "basic/editForm";
+        }
+        Item updateParam = itemEditFormDto.toItem();
+        itemRepository.update(itemEditFormDto.getId(), updateParam);
+
+        return "redirect:/basic/items/{itemId}";
     }
 
     @PostConstruct
